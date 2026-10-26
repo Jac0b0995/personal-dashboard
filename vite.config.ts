@@ -39,6 +39,10 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cacheId: 'cache-v2',
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}']
       }
     })
