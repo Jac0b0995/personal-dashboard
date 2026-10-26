@@ -177,7 +177,7 @@ async function markDeleted(
 }
 
 /** Hides the task immediately and queues the remote delete. */
-export function deleteTaskLocal(id: string | number): Promise<void> {
+export function deleteTaskLocal(id: string): Promise<void> { // CHANGED: id is a string
   return markDeleted(db.tasks, id);
 }
 
@@ -301,6 +301,7 @@ function normalizeTask(row: RemoteRow): LocalTask {
   const { user_id: _userId, ...rest } = row;
   return {
     ...rest,
+    id: String(rest.id), // CHANGED: always a string, even if Supabase returns a number
     postpone_count: Number(rest.postpone_count ?? 0),
     synced: true,
   } as unknown as LocalTask;

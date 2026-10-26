@@ -68,6 +68,7 @@ export default function TasksWidget() {
       category: Category;
     }) =>
       db.tasks.add({
+        id: crypto.randomUUID(), // CHANGED: string UUID, same value Supabase will store
         title,
         category,
         priority: "medium",
@@ -76,13 +77,13 @@ export default function TasksWidget() {
         xp_reward: 10,
         synced: false,
         due_date: new Date().toISOString(),
-      } as LocalTask),
+      }), // CHANGED: removed the `as LocalTask` cast
     onSuccess: invalidateTasks,
   });
 
   const completeTask = useMutation({
     networkMode: "always",
-    mutationFn: (taskId: NonNullable<LocalTask["id"]>) =>
+    mutationFn: (taskId: string) => // CHANGED: string id
       db.tasks.update(taskId, { status: "completed", synced: false }),
     onSuccess: invalidateTasks,
   });
@@ -90,7 +91,7 @@ export default function TasksWidget() {
   const postponeTask = useMutation({
     networkMode: "always",
     mutationFn: (task: LocalTask) =>
-      db.tasks.update(task.id as NonNullable<LocalTask["id"]>, {
+      db.tasks.update(task.id, { // CHANGED: no cast needed
         postpone_count: (task.postpone_count || 0) + 1,
         synced: false,
       }),
@@ -99,8 +100,7 @@ export default function TasksWidget() {
 
   const removeTask = useMutation({
     networkMode: "always",
-    mutationFn: (taskId: NonNullable<LocalTask["id"]>) =>
-      deleteTaskLocal(taskId),
+    mutationFn: (taskId: string) => deleteTaskLocal(taskId), // CHANGED: string id
     onSuccess: invalidateTasks,
   });
 
@@ -222,7 +222,7 @@ export default function TasksWidget() {
             const meta =
               CATEGORY_META[task.category as Category] ?? FALLBACK_META;
             const CategoryIcon = meta.icon;
-            const taskId = task.id as NonNullable<LocalTask["id"]>;
+            // CHANGED: removed `const taskId = task.id as NonNullable<...>`
 
             return (
               <li
@@ -252,7 +252,7 @@ export default function TasksWidget() {
                 <div className="flex shrink-0 items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => removeTask.mutate(taskId)}
+                    onClick={() => removeTask.mutate(task.id)} // CHANGED
                     aria-label={`Delete ${task.title}`}
                     title="Delete"
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-rose-500/10 hover:text-rose-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 active:scale-90"
@@ -272,7 +272,7 @@ export default function TasksWidget() {
 
                   <button
                     type="button"
-                    onClick={() => completeTask.mutate(taskId)}
+                    onClick={() => completeTask.mutate(task.id)} // CHANGED
                     aria-label={`Complete ${task.title}`}
                     title="Complete"
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-400 transition hover:bg-emerald-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 active:scale-90"
